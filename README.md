@@ -42,13 +42,13 @@ Branches are simultaneous versions of the code. Changes, like new functions or f
 # Coding Literacy
 If you guys want to change these go ahead just a start so far!
 ### Names of Motors
-string motor[motorA] = "m1";
-string motor[motorB] = "m2";
-string motor[motorC] = "m3";
-string motor[motorD] = "m4";
+* string motor[motorA] = "m1";
+* string motor[motorB] = "m2";
+* string motor[motorC] = "m3";
+* string motor[motorD] = "m4";
 
 ### Names of Sensors
-string S1 = "T" //touch
-string S2 = "US" //ultrasonic
-string S3 = "C" //color
-string S4 = "G" //gyro
+* string S1 = "T" //touch
+* string S2 = "US" //ultrasonic
+* string S3 = "C" //color
+* string S4 = "G" //gyro
