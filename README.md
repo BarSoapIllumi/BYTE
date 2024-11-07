@@ -46,7 +46,7 @@ Branches are simultaneous versions of the code. Changes, like new functions or f
 If you guys want to change these go ahead just a start so far!
 ### Names of Motors
 * const string MF = motorA;
-* const string MB = motorD;
+* const string MB = motorD;;
 * const string MFW = motorC;
 * const string MT = motorB;
 
@@ -55,3 +55,20 @@ If you guys want to change these go ahead just a start so far!
 * const string US = "S2"; //ultrasonic
 * const string C = "S3"; //color
 * const string G = "S4"; //gyro
+
+
+ C o n fi g u r e the s e n s o r = s e n s o r t y p e s and modes
+SensorType [ S4 ] = sensorEV3 Gyro ;
+wait1Msec ( 5 0 ) ;
+SensorMode [ S4 ] = modeEV3Gyro Calibration ;
+wait1Msec ( 5 0 ) ;
+SensorMode [ S4 ] = modeEV3Gyro RateAndAngle ;
+wait1Msec ( 5 0 ) ;
+SensorType [ S1 ] = sensorEV3 Touch ;
+wait1Msec ( 5 0 ) ;
+SensorType [ S3 ] = sen s o rEV 3 C ol o r ;
+wait1Msec ( 5 0 ) ;
+SensorMode [ S3 ] = modeEV3Color Color ;
+wait1Msec ( 5 0 ) ;
+SensorType [ S2 ] = s e n s o rEV 3 Ul t r a s o ni c ;
+wait1Msec ( 5 0 ) ;
