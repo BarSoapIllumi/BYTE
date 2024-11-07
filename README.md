@@ -48,7 +48,7 @@ If you guys want to change these go ahead just a start so far!
 * string motor[motorD] = "m4";
 
 ### Names of Sensors
-* string S1 = "T" //touch
-* string S2 = "US" //ultrasonic
-* string S3 = "C" //color
-* string S4 = "G" //gyro
+* string S1 = "T"; //touch
+* string S2 = "US"; //ultrasonic
+* string S3 = "C"; //color
+* string S4 = "G"; //gyro
