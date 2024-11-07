@@ -38,3 +38,17 @@ Yipee! You have the folder linked to the repository!!
 
 Note.
 Branches are simultaneous versions of the code. Changes, like new functions or fixes, should first be done in a branch to make sure the main always stays functional. Only alter the main branch once the branch is fully functional. It helps keeps code organized when many people work on it.
+
+# Coding Literacy
+If you guys want to change these go ahead just a start so far!
+### Names of Motors
+string motor[motorA] = "m1";
+string motor[motorB] = "m2";
+string motor[motorC] = "m3";
+string motor[motorD] = "m4";
+
+### Names of Sensors
+string S1 = "T" //touch
+string S2 = "US" //ultrasonic
+string S3 = "C" //color
+string S4 = "G" //gyro
