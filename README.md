@@ -45,13 +45,13 @@ Branches are simultaneous versions of the code. Changes, like new functions or f
 # Coding Literacy
 If you guys want to change these go ahead just a start so far!
 ### Names of Motors
-* string motor[motorA] = "m1";
-* string motor[motorB] = "m2";
-* string motor[motorC] = "m3";
-* string motor[motorD] = "m4";
+* const string MF = motorA;
+* const string MB = motorD;
+* const string MFW = motorC;
+* const string MT = motorB;
 
 ### Names of Sensors
-* string S1 = "T"; //touch
-* string S2 = "US"; //ultrasonic
-* string S3 = "C"; //color
-* string S4 = "G"; //gyro
+* const string T = "S1"; //touch
+* const string US = "S2"; //ultrasonic
+* const string C = "S3"; //color
+* const string G = "S4"; //gyro
