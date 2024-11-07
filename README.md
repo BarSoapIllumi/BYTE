@@ -36,6 +36,9 @@ Yipee! You have the folder linked to the repository!!
   * Give it a title(this is the same as commenting when committing) then press "Create pull request"
   * Git will automatically try to merge. If it works, just click "Merge pull request" and you're done! If it didn't, you have to revise the conflicts 1 by 1.
 
+### Retriving Changes Made by Others:
+https://docs.github.com/en/get-started/using-git/getting-changes-from-a-remote-repository
+
 Note.
 Branches are simultaneous versions of the code. Changes, like new functions or fixes, should first be done in a branch to make sure the main always stays functional. Only alter the main branch once the branch is fully functional. It helps keeps code organized when many people work on it.
 
