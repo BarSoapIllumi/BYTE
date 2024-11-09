@@ -57,18 +57,28 @@ If you guys want to change these go ahead just a start so far!
 * const string G = "S4"; //gyro
 
 
- C o n fi g u r e the s e n s o r = s e n s o r t y p e s and modes
-SensorType [ S4 ] = sensorEV3 Gyro ;
-wait1Msec ( 5 0 ) ;
-SensorMode [ S4 ] = modeEV3Gyro Calibration ;
-wait1Msec ( 5 0 ) ;
-SensorMode [ S4 ] = modeEV3Gyro RateAndAngle ;
-wait1Msec ( 5 0 ) ;
-SensorType [ S1 ] = sensorEV3 Touch ;
-wait1Msec ( 5 0 ) ;
-SensorType [ S3 ] = sen s o rEV 3 C ol o r ;
-wait1Msec ( 5 0 ) ;
-SensorMode [ S3 ] = modeEV3Color Color ;
-wait1Msec ( 5 0 ) ;
-SensorType [ S2 ] = s e n s o rEV 3 Ul t r a s o ni c ;
-wait1Msec ( 5 0 ) ;
+Sensor Config & Modes
+// Touch
+	SensorType[T] = sensorEV3_Touch;
+	wait1Msec(50);
+	
+	// Ultrasonic
+	SensorType[US] = sensor_EV3_Ultrasonic;
+	wait1Msec(50);
+	
+	// Color
+	SensorType[C] = sensor_EV3_Color;
+	wait1Msec(50);
+	SensorMode[C] = mode_EV3_Color_Color;
+	wait1Msec(50);
+	
+	// Gyro
+	SensorType[G] = sensorEV3_Gyro;
+	wait1Msec(50);
+	SensorMode[G] = modeEV3Gyro_Calibration;
+	wait1Msec(50);
+	SensorMode[G] = modeEV3Gyro_RateAndAngle;
+	wait1Msec(50);
+
+### All RobotC Comomands
+https://www.robotc.net/WebHelpMindstorms/index.htm
