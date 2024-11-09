@@ -4,7 +4,6 @@ const string MB = "motorD"; // Back motor
 const string MW = "motorB"; // Turning wheel motor
 const string MT = "motorD"; // Tray motor
 
-
 // Sensors
 const string T = "S1" // Touch sensor
 const string US = "S2" // Ultrasonic sensor
