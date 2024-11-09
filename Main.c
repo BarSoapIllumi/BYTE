@@ -42,6 +42,7 @@ void configureSensors(){
 	SensorMode[IR] = modeEV3IR_Seeker;
 }
 
+// Main Function
 task main()
 {
 	configureSensors();
