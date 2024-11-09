@@ -58,7 +58,8 @@ If you guys want to change these go ahead just a start so far!
 
 
 Sensor Config & Modes
-// Touch
+
+	// Touch
 	SensorType[T] = sensorEV3_Touch;
 	wait1Msec(50);
 	
