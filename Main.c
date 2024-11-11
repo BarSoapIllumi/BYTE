@@ -13,21 +13,21 @@ const string IR = "S#" // IR Sensor
 
 // Configures all necessary sensors
 void configureSensors(){
-	
+
 	// Touch
 	SensorType[T] = sensorEV3_Touch;
 	wait1Msec(50);
-	
+
 	// Ultrasonic
-	SensorType[US] = sensor_EV3_Ultrasonic;
+	SensorType[US] = sensorEV3_Ultrasonic;
 	wait1Msec(50);
-	
+
 	// Color
-	SensorType[C] = sensor_EV3_Color;
+	SensorType[C] = sensorEV3_Color;
 	wait1Msec(50);
-	SensorMode[C] = mode_EV3_Color_Color;
+	SensorMode[C] = modeEV3Color_Color;
 	wait1Msec(50);
-	
+
 	// Gyro
 	SensorType[G] = sensorEV3_Gyro;
 	wait1Msec(50);
@@ -35,11 +35,12 @@ void configureSensors(){
 	wait1Msec(50);
 	SensorMode[G] = modeEV3Gyro_RateAndAngle;
 	wait1Msec(50);
-	
-	// IR Sensor & Beacon 
-	SensorType[IR] = sensorEV3_IR;
+
+	// IR Sensor & Beacon
+	SensorType[IR] = sensorEV3_IRSensor;
 	wait1Msec(50);
 	SensorMode[IR] = modeEV3IR_Seeker;
+	wait1Msec(50);
 }
 
 // Main Function
