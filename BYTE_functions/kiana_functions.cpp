@@ -1,9 +1,6 @@
 #include <iostream>
 using namespace std;
 
-
-
-
 /* Suck and Spit: Need to suck in food, and spit it out */
 string motor[motorA] = "m1";
 string motor[motorB] = "m2";
@@ -23,7 +20,6 @@ void Suck_Spit (bool indicator){
 }
 
 /* Attack when see Red: use color sensor value and move forward fast and hit touch sensor three times then stop*/
-
 void attack(){
     int counter = 0;
     configureAllSensors();
