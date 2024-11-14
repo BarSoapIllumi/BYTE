@@ -1,15 +1,17 @@
 // Motors
 const string MF = "motorA"; // Front motor
-const string MBL = "motorD"; // Back left motor
-const string MBR = "motorB"; // Back right motor
-const string MT = "motorD"; // Tray motor
+const string MBL = "motorC"; // Back left motor
+const string MBR = "motorD"; // Back right motor
+const string MT = "motorB"; // Tray motor
 
 // Sensors
 const string T = "S1"; // Touch sensor
 const string US = "S2"; // Ultrasonic sensor
 const string C = "S3"; // Color sensor
 const string G = "S4"; // Gyro sensor
-const string IR = "S####"; // IR Sensor
+const string S = "S####"; // Sound Sensor
+
+const int spd = 50;
 
 // Configures all necessary sensors
 void configureSensors(){
@@ -36,39 +38,53 @@ void configureSensors(){
 	SensorMode[G] = modeEV3Gyro_RateAndAngle;
 	wait1Msec(50);
 
-	// IR Sensor & Beacon
-	SensorType[IR] = sensorEV3_IRSensor;
-	wait1Msec(50);
-	SensorMode[IR] = modeEV3IR_Seeker;
-	wait1Msec(50);
 }
 
 /*
-Travels to an indicated IR beacon
-@param beacon indicated beacon channel
+Follows indicated colored line
+@param color indicated color to follow
+@param home indicates if BYTE is home to complete home procedure
 */
-void moveToBeacon(int beacon){
+/*
+void moveToBeacon(string color, bool home){
 
-	while(getIRBeaconChannelDirection(IR, beacon) < -5 || getIRBeaconChannelDirection(IR, beacon) > 5){ // Detects heading
-		if (getIRBeaconChannelDirection(IR, beacon) < 0) { // If IR beacon is to the left, turn right
-			motor[MBL] = -50;
-			motor[MBR] = 50;
-			motor[MF] = 50;
-		} else { // If IR beacon is to the right, turn left
-			motor[MBL] = 50;
-			motor[MBR] = -50;
-			motor[MF] = 50;
+	bool follow;
+
+	if(home){ // If in home base (within encased rectangle)
+
+		while(SensorValue[C] != (int)color){ // While not seeing color
+
+			follow = true;
+
+			if(SensorValue[C] != (int)colorBlack){
+				// Go forward
+				motor[MBL] = spd;
+				motor[MBR] = spd;
+				motor[MF] = spd;
+				follow = false;
+			}
+			while(SensorValue[C] != (int)colorBlack){ // While not following black line
+				// Go forward
+				motor[MBL] = spd;
+				motor[MBR] = spd;
+				motor[MF] = spd;
+			}
+
+			resetGyro(G); // Reset gyro degree
+
+			// Turn
+			motor[MBL] = spd;
+			motor[MBR] = -spd;
+			motor[MF] = -spd;
+			while(abs(getGyroDegrees(G)) < 90){} // Wait for 90 degree turn
+
+
+
 		}
 	}
-	motor[MBL] = motor[MBR] = motor[MF] = 0;
-
-	motor[MBL] = motor[MBR] = motor[MF] = 50; // Move forwards
-	while(getIRBeaconChannelStrength(IR, beacon) > 10) { // Detects distance from beacon
-		// OBSTACLE AVOID FUNCTION
-	}
-	motor[MBL] = motor[MBR] = motor[MF] = 0;
 
 }
+*/
 
 /*
 Brings robot to specified food pile, intakes food, then returns home
@@ -77,15 +93,7 @@ Brings robot to specified food pile, intakes food, then returns home
 */
 int getFood(int beacon){
 
-	clearTimer(T1); // Reset timer
-
-	moveToBeacon(beacon);
-
-	Suck_Spit(1); // Intakes food
-
-	moveToBeacon(0); //REPLACE WITH HOME
-
-	Suck_Spit(0); // Spits out food
+	clearTimer(T1);
 
 	return time1[T1];
 
@@ -95,11 +103,22 @@ int getFood(int beacon){
 void start(){
 
 	while(!getButtonPress(buttonEnter)){} // Wait for button enter to be pressed
-	roaming();
+//	roaming();
 	//SOUND SENSOR STUFF
 
-	moveToBeacon(0); // REPLACE WITH HOME
 
+}
+
+void testColor(){
+	while(true){
+
+	motor[MBL] = motor[MBR] = spd;
+	while(getColorReflected(S3) < 1000) {}
+
+	motor[MBL] = motor[MBR] = -spd;
+	while(SensorValue[C] != (int)colorRed){}
+
+	}
 }
 
 // Main Function
@@ -107,10 +126,12 @@ task main()
 {
 	configureSensors(); // Configure all sensors
 
-	start(); // Begin start procedure
+	//start(); // Begin start procedure
 
+	testColor();
+/*
 	while(true){ // All processes here
 
 	}
-
+*/
 }
