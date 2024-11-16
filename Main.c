@@ -7,11 +7,12 @@ const string MT = "motorB"; // Tray motor
 // Sensors
 const string T = "S1"; // Touch sensor
 const string US = "S2"; // Ultrasonic sensor
-const string C = "S3"; // Color sensor
+const string CColor = "S3"; // Color sensing color sensor
+const string CRef = "S####"; // Reflection sensing color sensor
 const string G = "S4"; // Gyro sensor
 const string S = "S####"; // Sound Sensor
 
-const int spd = 50;
+int spd = -50;
 
 // Configures all necessary sensors
 void configureSensors(){
@@ -25,9 +26,14 @@ void configureSensors(){
 	wait1Msec(50);
 
 	// Color
-	SensorType[C] = sensorEV3_Color;
+	SensorType[CColor] = sensorEV3_Color;
 	wait1Msec(50);
-	SensorMode[C] = modeEV3Color_Color;
+	SensorMode[CColor] = modeEV3Color_Color;
+	wait1Msec(50);
+	
+	SensorType[CRef] = sensorEV3_Color;
+	wait1Msec(50);
+	SensorMode[CRef] = modeEV3Color_Reflected;
 	wait1Msec(50);
 
 	// Gyro
@@ -37,65 +43,117 @@ void configureSensors(){
 	wait1Msec(50);
 	SensorMode[G] = modeEV3Gyro_RateAndAngle;
 	wait1Msec(50);
+	
+	// Sound
+	SensorType[S] = sensorSoundDBA;
+	wait1Msec(50);
 
 }
+
+// Follows black line
+void followLine() {
+	
+	motor[MF] = spd; // Start legs
+	
+	// Self correction
+	if(SensorValue[CRef] < 15){ // Too far left, drive towards right
+			
+		clearTimer(T2); // Reset faulty case timer
+		motor[MBL] = spd + 10; 
+		motor[MBR] = spd;
+				
+	} else if(SensorValue[CRef] > 60){ // Too far right, drive towards left
+		
+		motor[MBL] = spd; 
+		motor[MBR] = spd + 10; 
+				
+	} else { // Following line, go straight
+		
+		clearTimer(T2); // Reset faulty case timer
+		motor[MBL] = motor[MBR] = spd;
+				
+	}
+	
+	////////////////////////////////////// OBSTACLE
+	
+	// Faulty case: robot on the wrong side of the line
+	if(time1(T2) > 500){
+		spd = -spd; // Reverse speed (reverses correction direction)
+	}
+	
+}
+
 
 /*
 Follows indicated colored line
 @param color indicated color to follow
 @param home indicates if BYTE is home to complete home procedure
 */
-/*
-void moveToBeacon(string color, bool home){
-
-	bool follow;
+void move(string color, bool home){
 
 	if(home){ // If in home base (within encased rectangle)
 
-		while(SensorValue[C] != (int)color){ // While not seeing color
-
-			follow = true;
-
-			if(SensorValue[C] != (int)colorBlack){
-				// Go forward
-				motor[MBL] = spd;
-				motor[MBR] = spd;
-				motor[MF] = spd;
-				follow = false;
-			}
-			while(SensorValue[C] != (int)colorBlack){ // While not following black line
-				// Go forward
-				motor[MBL] = spd;
-				motor[MBR] = spd;
-				motor[MF] = spd;
-			}
-
-			resetGyro(G); // Reset gyro degree
-
-			// Turn
-			motor[MBL] = spd;
-			motor[MBR] = -spd;
-			motor[MF] = -spd;
-			while(abs(getGyroDegrees(G)) < 90){} // Wait for 90 degree turn
-
-
-
-		}
+		motor[MF] = motor[MBL] = motor[MBR] = spd; // Move forward until it sees line
+		while (SensorValue[CRef] > 15) {}
+		
+		resetGyro(G); // Set current heading to 0 degrees
+		
+		// Turn right 90 degrees
+		motor[MBL] = spd; 
+		motor[MBR] = -spd;
+		while(abs(getGyroDegrees(G)) < 90){}
+		
+		while (SensorValue[CColor] != color) { // Follow black line ntil color reached
+			followLine();
+		}	
+		
+		resetGyro(G); // Set current heading to 0 degrees
+		
+		// Turn left 90 degrees
+		motor[MBL] = -spd; 
+		motor[MBR] = spd;
+		while(abs(getGyroDegrees(G)) < 90){}
+		
 	}
+		
+	while(SensorValue[C] != color){ // While destination not reached
 
+		followLine();
+
+	}
+	
+	motor[MF] = motor[MBL] = motor[MBR] = 0; // Stop all movement
 }
-*/
+
 
 /*
 Brings robot to specified food pile, intakes food, then returns home
-@param beacon indicated food pile beacon channel
-@return time timeed taken to complete functions
+@param color indicated food pile color
+@return time time taken to complete functions
 */
-int getFood(int beacon){
+int getFood(int color){
 
-	clearTimer(T1);
+	clearTimer(T1); // Start timer
+	
+	move(color, true); // Move from home to indicated color location
+	
+	Suck_Spit(1); // Intake food
+	
+	resetGyro(G); // Set current heading to 0 degrees
+		
+	// Turn right 180 degrees
+	motor[MBL] = spd; 
+	motor[MBR] = -spd;
+	while(abs(getGyroDegrees(G)) < 90){}
+	
+	move(color, false); // Return home
+	
+	motor[MF] = motor[MBL] = motor[MBR] = spd; // Go into box
+	wait1M(1000);
+	
+	Suck_Spit(0); // Outtake food
 
-	return time1[T1];
+	return time1[T1]; // Return total time taken
 
 }
 
@@ -103,35 +161,32 @@ int getFood(int beacon){
 void start(){
 
 	while(!getButtonPress(buttonEnter)){} // Wait for button enter to be pressed
-//	roaming();
-	//SOUND SENSOR STUFF
-
+	setSoundVolume(100); // Set volume max
+	playSoundFile("bark.MP3"); // Play bark noise
+	
+	// SOUND SENSOR
+	
+	while(SensorValue(S) < 50){} // Wait for clap
+	playSoundFile("bark.MP3");
+	
+	motor[MF] = motor[MBL] = motor[MBR] = 0; // End roaming mode
 
 }
 
-void testColor(){
-	while(true){
-
-	motor[MBL] = motor[MBR] = spd;
-	while(getColorReflected(S3) < 1000) {}
-
-	motor[MBL] = motor[MBR] = -spd;
-	while(SensorValue[C] != (int)colorRed){}
-
-	}
-}
 
 // Main Function
 task main()
 {
 	configureSensors(); // Configure all sensors
 
-	//start(); // Begin start procedure
+	start();
 
-	testColor();
-/*
 	while(true){ // All processes here
 
+		while(SensorValue() != (int)colorBlue){ // Wait till color shown
+			getFood((int)colorBlue);
+		}
+
 	}
-*/
+
 }
