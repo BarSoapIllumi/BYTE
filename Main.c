@@ -54,10 +54,14 @@ const CONV = (5.5*PI)/360.0;
 // Suck and Spit
 void Suck_Spit (bool indicator){
     if (indicator == 1){
-        motor[MT] = 25;
+	motor[MT] = 25;
+	while (SensorValue[T] == 0)
+		{}
     }
     else{
-        motor[MT] = -25;
+	motor[MT] = -25;
+	while (SensorValue[T] == 1)
+		{}
     }
     motor[MT] = 0;
 }
