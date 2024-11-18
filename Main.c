@@ -12,11 +12,9 @@ const string CRef = "S####"; // Reflection sensing color sensor
 const string G = "S4"; // Gyro sensor
 const string S = "S####"; // Sound Sensor
 
-<<<<<<< HEAD
+const CONV = (5.5*PI)/360.0;
 int spd = -50;
 
-=======
->>>>>>> kianas_functions
 // Configures all necessary sensors
 void configureSensors(){
 
@@ -50,7 +48,6 @@ void configureSensors(){
 	// Sound
 	SensorType[S] = sensorSoundDBA;
 	wait1Msec(50);
-<<<<<<< HEAD
 
 }
 
@@ -177,30 +174,11 @@ void start(){
 
 }
 
+/*////////////////////////////////////////////////////////////////////////////////
+Kiana Functions
+*////////////////////////////////////////////////////////////////////////////////
 
-// Main Function
-task main()
-{
-	configureSensors(); // Configure all sensors
-
-	start();
-
-	while(true){ // All processes here
-
-		while(SensorValue() != (int)colorBlue){ // Wait till color shown
-			getFood((int)colorBlue);
-		}
-
-	}
-=======
->>>>>>> kianas_functions
-
-}
-
-// conversion factor
-const CONV = (5.5*PI)/360.0;
-
-// Suck and Spit
+/ Suck and Spit
 void Suck_Spit (bool indicator){
     if (indicator == 1){
 	motor[MT] = 25;
@@ -238,20 +216,26 @@ void attack(){
 // Main Function
 task main()
 {
-	configureSensors();
-	while true {
-        // all functions here
-        	int initialDist = SensorValue[US];
+	configureSensors(); // Configure all sensors
+
+	start();
+
+	while(true){ // All processes here
+	
+		int initialDist = SensorValue[US];
+	
+		getFood((int)colorBlue);
+       	
 		// if an object that is red is close to byte, attack
-        	if ((SensorValue[CColor] == (int)ColorRed) && initialDist < 10){
-            		attack();
-        	}
-    	}
+        if ((SensorValue[CColor] == (int)ColorRed) && initialDist < 10){
+       		attack();
+        }
+    }
 	
 	// get rid of objects inside byte at the end
 	if (SensorValue[T] == 1){
 		suck_spit(0);
-		while (SensorValue[T] == 0)
-			{}
+		while (SensorValue[T] == 0){}
 	}
+
 }
