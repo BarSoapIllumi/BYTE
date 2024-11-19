@@ -14,6 +14,7 @@ const string S = "S####"; // Sound Sensor
 
 const CONV = (5.5*PI)/360.0;
 int spd = -50;
+const int high = 70, low = 30;
 
 // Configures all necessary sensors
 void configureSensors(){
@@ -57,13 +58,13 @@ void followLine() {
 	motor[MF] = spd; // Start legs
 	
 	// Self correction
-	if(SensorValue[CRef] < 15){ // Too far left, drive towards right
+	if(SensorValue[CRef] < low){ // Too far left, drive towards right
 			
 		clearTimer(T2); // Reset faulty case timer
 		motor[MBL] = spd + 10; 
 		motor[MBR] = spd;
 				
-	} else if(SensorValue[CRef] > 60){ // Too far right, drive towards left
+	} else if(SensorValue[CRef] > high){ // Too far right, drive towards left
 		
 		motor[MBL] = spd; 
 		motor[MBR] = spd + 10; 
@@ -95,7 +96,7 @@ void move(string color, bool home){
 	if(home){ // If in home base (within encased rectangle)
 
 		motor[MF] = motor[MBL] = motor[MBR] = spd; // Move forward until it sees line
-		while (SensorValue[CRef] > 15) {}
+		while (SensorValue[CRef] > high) {}
 		
 		resetGyro(G); // Set current heading to 0 degrees
 		
@@ -176,7 +177,7 @@ void start(){
 
 /*////////////////////////////////////////////////////////////////////////////////
 Kiana Functions
-*////////////////////////////////////////////////////////////////////////////////
+*/////////////////////////////////////////////////////////////////////////////////
 
 / Suck and Spit
 void Suck_Spit (bool indicator){
@@ -212,6 +213,62 @@ void attack(){
     // stop moving
     motor[MF] = motor[MBL] = motor[MBR] = 0; 
 }
+
+
+/*////////////////////////////////////////////////////////////////////////////////
+Lily Functions
+*////////////////////////////////////////////////////////////////////////////////
+
+// Detects obstacle, avoids it, then returns to original path
+void detectObstacle(){
+configureSensor();
+// moving forward, until ultrasonic detects something less than 10 cm away
+      while(sensorValue[US]<=15){
+            int degrees = 0;
+            motor(MF)=motor(MBL)=motor(MBR)=0; // motor stop
+            wait1Msec(1000);
+            resetGyro(G);
+            motor(MBR)= -spd; // motor motor A = -50, B 50
+            motor(MBL)=motor(MF)= spd;
+            
+            while(sensorValue[US]<=20)
+            {}
+            motor(MF)=motor(MBL)=motor(MBR)=0;  // motor stop
+            wait1Msec(500);
+            degrees = getGyroDegrees(G); // record the degrees
+            resetGyro(G);
+            
+            motor(MF)=motor(MBR)= spd; // motor forward
+            motor(MBL) = -spd;
+            
+            while(abs(sensorValue[G]) >= degrees)
+            {}
+            motor(MF)=spd;
+            motor(MB)=-; // go back - x degrees, A 50 B -50
+      }
+      
+}
+
+// Perform a trick when time exceeded
+void punishHim(){ //wait how do we indicate how byte will need to be punished
+      for(int i=0; i<4; i++){ //spinning 360
+            motor(MF)=70;
+            motor(MB)=-70;    
+      }
+      
+      for (int j=0; i<3;I++){ //moving forwards and backwards
+            motor(MF)=50;
+            motor(MB)=50;
+            wait1Msec(500);
+            motor(MF)=-50;
+            motor(MB)=-50;
+      }
+      
+      motor(MF)=motor(MB)=0;
+      suck_spit(1); // spit suck function uncalled
+}
+
+
 
 // Main Function
 task main()
