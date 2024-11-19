@@ -76,7 +76,18 @@ void followLine() {
 				
 	}
 	
-	////////////////////////////////////// OBSTACLE
+	if(detectObstacle()){
+		motor[MF] = motor[MBL] = motor[MBR] = spd; // Move forward until it sees line
+		while (SensorValue[CRef] > high) {}
+		
+		resetGyro(G); // Set current heading to 0 degrees
+		
+		// Turn right 90 degrees
+		motor[MBL] = spd; 
+		motor[MBR] = -spd;
+		while(abs(getGyroDegrees(G)) < 90){}
+		
+	}
 	
 	// Faulty case: robot on the wrong side of the line
 	if(time1(T2) > 500){
@@ -179,7 +190,7 @@ void start(){
 Kiana Functions
 */////////////////////////////////////////////////////////////////////////////////
 
-/ Suck and Spit
+// Suck and Spit
 void Suck_Spit (bool indicator){
     if (indicator == 1){
 	motor[MT] = 25;
@@ -220,51 +231,74 @@ Lily Functions
 *////////////////////////////////////////////////////////////////////////////////
 
 // Detects obstacle, avoids it, then returns to original path
-void detectObstacle(){
-configureSensor();
-// moving forward, until ultrasonic detects something less than 10 cm away
-      while(sensorValue[US]<=15){
-            int degrees = 0;
-            motor(MF)=motor(MBL)=motor(MBR)=0; // motor stop
-            wait1Msec(1000);
-            resetGyro(G);
-            motor(MBR)= -spd; // motor motor A = -50, B 50
-            motor(MBL)=motor(MF)= spd;
-            
-            while(sensorValue[US]<=20)
-            {}
-            motor(MF)=motor(MBL)=motor(MBR)=0;  // motor stop
-            wait1Msec(500);
-            degrees = getGyroDegrees(G); // record the degrees
-            resetGyro(G);
-            
-            motor(MF)=motor(MBR)= spd; // motor forward
-            motor(MBL) = -spd;
-            
-            while(abs(sensorValue[G]) >= degrees)
-            {}
-            motor(MF)=spd;
-            motor(MB)=-; // go back - x degrees, A 50 B -50
+bool detectObstacle(){
+	
+	bool obsDec=false;
+
+    if(sensorValue[US]<=15){
+    	obsDec=true;
+        int degrees = 0;
+        motor(MF)=motor(MBL)=motor(MBR)=0; // motor stop
+        wait1Msec(1000);
+        resetGyro(G);
+           
+		motor(MBR)= -spd; // motor motor A = -50, B 50 FUCKING TURN THaT SHIT AROUND
+        motor(MBL)=motor(MF)= spd;// fucking forward
+		while(sensorValue[US]<=20){}
+        degrees=getGyroDegrees(G);
+        motor(MBL)=spd;
+		motor(MF)=spd;
+           
+        while(true){
+            motor(MBL)=spd;
+			motor(MF)=spd;
+			wait1Msec(1000);
+			resetGyro(G);
+			motor(MBR)= spd; // motor motor A = -50, B 50 FUCKING TURN THaT SHIT AROUND
+			motor(MBL)=motor(MF)= -spd;
+			while(abs(getGyroDegrees(G)<=90+degrees)){}
+			motor(MF)=motor(MBL)=motor(MBR)=0;
+			if(sensorValue[US]>=35){
+            	break;
+			}
+			else
+			{
+				resetGyro(G);
+				motor(MBR)= -spd; // motor motor A = -50, B 50 FUCKING TURN THaT SHIT AROUND
+				motor(MBL)=motor(MF)= spd;
+				while(abs(getGyroDegrees(G)<=90+degrees)){}
+			}
+		}
+   
       }
-      
+      return obsDec;
 }
 
 // Perform a trick when time exceeded
-void punishHim(){ //wait how do we indicate how byte will need to be punished
-      for(int i=0; i<4; i++){ //spinning 360
+void punishHim(){ 
+
+      for(int i=0; i<4; i++){ //spinning 360 4 times
+      		resetGyro(G); // Set current heading to 0
             motor(MF)=70;
-            motor(MB)=-70;    
+            motor(MBR)=-70;    
+            motor(MBL)=70; 
+            while(abs(getGyroDegrees(g) <= 360){} // Turn 360 degrees
       }
       
-      for (int j=0; i<3;I++){ //moving forwards and backwards
-            motor(MF)=50;
-            motor(MB)=50;
+      for (int j=0; i<3;I++){ //moving forwards and backwards 3x
+     		motor(MF)=70; // Move forward
+            motor(MBL)=spd;
+            motor(MBR)=spd;
             wait1Msec(500);
-            motor(MF)=-50;
-            motor(MB)=-50;
+            motor(MF)=-spd; // Move backwards
+            motor(MBL)=70;
+            motor(MBR)=-spd;
+            wait1Msec(500);
       }
+      // Stop movement
+      motor(MF)=0;
+      motor(MBR)=motor(MBL)=0;
       
-      motor(MF)=motor(MB)=0;
       suck_spit(1); // spit suck function uncalled
 }
 
