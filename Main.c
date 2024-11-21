@@ -1,143 +1,128 @@
-// Motors
-const string MF = "motorA"; // Front motor
-const string MBL = "motorC"; // Back left motor
-const string MBR = "motorD"; // Back right motor
-const string MT = "motorB"; // Tray motor
-
-// Sensors
-const string T = "S1"; // Touch sensor
-const string US = "S2"; // Ultrasonic sensor
-const string CColor = "S3"; // Color sensing color sensor
-const string CRef = "S####"; // Reflection sensing color sensor
-const string G = "S4"; // Gyro sensor
-const string S = "S####"; // Sound Sensor
-
-const CONV = (5.5*PI)/360.0;
-int spd = -50;
-const int high = 70, low = 30;
+int spd = -30; // Default speed
+const int high = 50, low = 10; // Color reflection threshold
 
 // Configures all necessary sensors
 void configureSensors(){
 
-	// Touch
-	SensorType[T] = sensorEV3_Touch;
+	// Colors
+	SensorType[S3] = sensorEV3_Color;
+	wait1Msec(50);
+	SensorMode[S3] = modeEV3Color_Color;
 	wait1Msec(50);
 
-	// Ultrasonic
-	SensorType[US] = sensorEV3_Ultrasonic;
+	SensorType[S2] = sensorEV3_Color;
 	wait1Msec(50);
-
-	// Color
-	SensorType[CColor] = sensorEV3_Color;
-	wait1Msec(50);
-	SensorMode[CColor] = modeEV3Color_Color;
-	wait1Msec(50);
-	
-	SensorType[CRef] = sensorEV3_Color;
-	wait1Msec(50);
-	SensorMode[CRef] = modeEV3Color_Reflected;
+	SensorMode[S2] = modeEV3Color_Reflected;
 	wait1Msec(50);
 
 	// Gyro
-	SensorType[G] = sensorEV3_Gyro;
+	SensorType[S4] = sensorEV3_Gyro;
 	wait1Msec(50);
-	SensorMode[G] = modeEV3Gyro_Calibration;
+	SensorMode[S4] = modeEV3Gyro_Calibration;
 	wait1Msec(50);
-	SensorMode[G] = modeEV3Gyro_RateAndAngle;
+	SensorMode[S4] = modeEV3Gyro_RateAndAngle;
 	wait1Msec(50);
-	
+
 	// Sound
 	SensorType[S] = sensorSoundDBA;
 	wait1Msec(50);
 
 }
 
-// Follows black line
-void followLine() {
-	
-	motor[MF] = spd; // Start legs
-	
-	// Self correction
-	if(SensorValue[CRef] < low){ // Too far left, drive towards right
-			
-		clearTimer(T2); // Reset faulty case timer
-		motor[MBL] = spd + 10; 
-		motor[MBR] = spd;
-				
-	} else if(SensorValue[CRef] > high){ // Too far right, drive towards left
-		
-		motor[MBL] = spd; 
-		motor[MBR] = spd + 10; 
-				
-	} else { // Following line, go straight
-		
-		clearTimer(T2); // Reset faulty case timer
-		motor[MBL] = motor[MBR] = spd;
-				
-	}
-	
-	if(detectObstacle()){
-		motor[MF] = motor[MBL] = motor[MBR] = spd; // Move forward until it sees line
-		while (SensorValue[CRef] > high) {}
-		
-		resetGyro(G); // Set current heading to 0 degrees
-		
-		// Turn right 90 degrees
-		motor[MBL] = spd; 
-		motor[MBR] = -spd;
-		while(abs(getGyroDegrees(G)) < 90){}
-		
-	}
-	
-	// Faulty case: robot on the wrong side of the line
-	if(time1(T2) > 500){
-		spd = -spd; // Reverse speed (reverses correction direction)
-	}
-	
+void Suck_Spit(bool indicator){
+    if (indicator == 1){
+		motor[motorB] = -100;
+	//while (SensorValue[T] == 0){}
+    }
+    else{
+		motor[motorB] = 100;
+	//while (SensorValue[T] == 1){}
+    }
+    wait1Msec(5000);
+    motor[motorB] = 0;
 }
 
+// Follows black line
+void followLine() {
+
+	motor[motorA] = spd; // Start legs
+
+	// Self correction
+	if(SensorValue[S2] < low){ // Too far left, drive towards right
+
+		clearTimer(T2); // Reset faulty case timer
+		motor[motorC] = spd;
+		motor[motorD] = spd + 30;
+		wait1Msec(1000);
+		motor[motorC] = motor[motorD] = spd;
+		
+//		displayTextLine(5, "%s%d", "The [low] value is ", SensorValue[S2]);
+
+		} else if(SensorValue[S2] > high){ // Too far right, drive towards left
+
+		motor[motorC] = spd + 15;
+		motor[motorD] = spd;
+		wait1Msec(1000);
+		motor[motorC] = motor[motorD] = spd;
+//		displayTextLine(10, "%s%d", "The [high] value is ", SensorValue[S2]);
+
+		} else { // Following line, go straight
+
+		clearTimer(T2); // Reset faulty case timer
+		motor[motorC] = motor[motorD] = spd;
+
+	}
+
+	////////////////////////////////////// OBSTACLE
+
+	// Faulty case: robot on the wrong side of the line
+	/*	
+	if(time1(T2) > 1000){
+	 	spd = -spd; // Reverse speed (reverses correction direction)
+		}
+*/
+}
 
 /*
 Follows indicated colored line
 @param color indicated color to follow
 @param home indicates if BYTE is home to complete home procedure
 */
-void move(string color, bool home){
+void move(int color, bool home){
 
 	if(home){ // If in home base (within encased rectangle)
 
-		motor[MF] = motor[MBL] = motor[MBR] = spd; // Move forward until it sees line
-		while (SensorValue[CRef] > high) {}
-		
-		resetGyro(G); // Set current heading to 0 degrees
-		
-		// Turn right 90 degrees
-		motor[MBL] = spd; 
-		motor[MBR] = -spd;
-		while(abs(getGyroDegrees(G)) < 90){}
-		
-		while (SensorValue[CColor] != color) { // Follow black line ntil color reached
-			followLine();
-		}	
-		
-		resetGyro(G); // Set current heading to 0 degrees
-		
-		// Turn left 90 degrees
-		motor[MBL] = -spd; 
-		motor[MBR] = spd;
-		while(abs(getGyroDegrees(G)) < 90){}
-		
-	}
-		
-	while(SensorValue[C] != color){ // While destination not reached
+		straight(1); // Move forward until it sees line
+		while (SensorValue[S2] > high) {}
 
+		resetGyro(S4); // Set current heading to 0 degrees
+
+		// Turn right 90 degrees
+		motor[motorC] = spd;
+		motor[motorD] = -spd;
+		while(abs(getGyroDegrees(S4)) < 90){}
+
+		while (SensorValue[S3] != color) { // Follow black line ntil color reached
+			followLine();
+		}
+
+		resetGyro(S4); // Set current heading to 0 degrees
+
+		// Turn left 90 degrees
+		motor[motorC] = -spd;
+		motor[motorD] = spd;
+		while(abs(getGyroDegrees(S4)) < 90){}
+
+	}
+
+	while(SensorValue[S3] != color){ // While destination not reached
+		displayTextLine(0, "%d", SensorValue[S3]);
 		followLine();
 
 	}
-	
-	motor[MF] = motor[MBL] = motor[MBR] = 0; // Stop all movement
-}
 
+	motor[motorA] = motor[motorC] = motor[motorD] = 0; // Stop all movement
+}
 
 /*
 Brings robot to specified food pile, intakes food, then returns home
@@ -148,23 +133,23 @@ int getFood(int color){
 
 	clearTimer(T1); // Start timer
 	
-	move(color, true); // Move from home to indicated color location
+	move(color, false); // Move from home to indicated color location
 	
-	Suck_Spit(1); // Intake food
+	Suck_Spit(true); // Intake food
 	
-	resetGyro(G); // Set current heading to 0 degrees
+	resetGyro(S4); // Set current heading to 0 degrees
 		
 	// Turn right 180 degrees
-	motor[MBL] = spd; 
-	motor[MBR] = -spd;
-	while(abs(getGyroDegrees(G)) < 90){}
+	motor[motorC] = spd; 
+	motor[motorD] = -spd;
+	while(abs(getGyroDegrees(S4)) < 90){}
 	
 	move(color, false); // Return home
 	
-	motor[MF] = motor[MBL] = motor[MBR] = spd; // Go into box
-	wait1M(1000);
+	straight(1); // Go into box
+	wait1Msec(3000);
 	
-	Suck_Spit(0); // Outtake food
+	Suck_Spit(false); // Outtake food
 
 	return time1[T1]; // Return total time taken
 
@@ -177,12 +162,6 @@ void start(){
 	setSoundVolume(100); // Set volume max
 	playSoundFile("bark.MP3"); // Play bark noise
 	
-	// SOUND SENSOR
-	
-	while(SensorValue(S) < 50){} // Wait for clap
-	playSoundFile("bark.MP3");
-	
-	motor[MF] = motor[MBL] = motor[MBR] = 0; // End roaming mode
 
 }
 
@@ -225,55 +204,6 @@ void attack(){
     motor[MF] = motor[MBL] = motor[MBR] = 0; 
 }
 
-
-/*////////////////////////////////////////////////////////////////////////////////
-Lily Functions
-*////////////////////////////////////////////////////////////////////////////////
-
-// Detects obstacle, avoids it, then returns to original path
-bool detectObstacle(){
-	
-	bool obsDec=false;
-
-    if(sensorValue[US]<=15){
-    	obsDec=true;
-        int degrees = 0;
-        motor(MF)=motor(MBL)=motor(MBR)=0; // motor stop
-        wait1Msec(1000);
-        resetGyro(G);
-           
-		motor(MBR)= -spd; // motor motor A = -50, B 50 FUCKING TURN THaT SHIT AROUND
-        motor(MBL)=motor(MF)= spd;// fucking forward
-		while(sensorValue[US]<=20){}
-        degrees=getGyroDegrees(G);
-        motor(MBL)=spd;
-		motor(MF)=spd;
-           
-        while(true){
-            motor(MBL)=spd;
-			motor(MF)=spd;
-			wait1Msec(1000);
-			resetGyro(G);
-			motor(MBR)= spd; // motor motor A = -50, B 50 FUCKING TURN THaT SHIT AROUND
-			motor(MBL)=motor(MF)= -spd;
-			while(abs(getGyroDegrees(G)<=90+degrees)){}
-			motor(MF)=motor(MBL)=motor(MBR)=0;
-			if(sensorValue[US]>=35){
-            	break;
-			}
-			else
-			{
-				resetGyro(G);
-				motor(MBR)= -spd; // motor motor A = -50, B 50 FUCKING TURN THaT SHIT AROUND
-				motor(MBL)=motor(MF)= spd;
-				while(abs(getGyroDegrees(G)<=90+degrees)){}
-			}
-		}
-   
-      }
-      return obsDec;
-}
-
 // Perform a trick when time exceeded
 void punishHim(){ 
 
@@ -285,48 +215,51 @@ void punishHim(){
             while(abs(getGyroDegrees(g) <= 360){} // Turn 360 degrees
       }
       
-      for (int j=0; i<3;I++){ //moving forwards and backwards 3x
-     		motor(MF)=70; // Move forward
-            motor(MBL)=spd;
-            motor(MBR)=spd;
-            wait1Msec(500);
-            motor(MF)=-spd; // Move backwards
-            motor(MBL)=70;
-            motor(MBR)=-spd;
-            wait1Msec(500);
+      for (int i=0; i<3; i++){ //moving forwards and backwards 3x
+     		straight(1); // Move forwards
+            wait1Msec(1000);
+            straight(0); // Move backwards
+            wait1Msec(1000);
       }
-      // Stop movement
-      motor(MF)=0;
-      motor(MBR)=motor(MBL)=0;
       
-      suck_spit(1); // spit suck function uncalled
+      motor[motorB] = motor[motorC] = motor[motorD] = 0; // Stops movement
+      
 }
-
-
 
 // Main Function
 task main()
 {
+	bool running = true;
+	int runTime = 0;
+	
 	configureSensors(); // Configure all sensors
-
 	start();
-
-	while(true){ // All processes here
 	
-		int initialDist = SensorValue[US];
-	
-		getFood((int)colorBlue);
-       	
-		// if an object that is red is close to byte, attack
-        if ((SensorValue[CColor] == (int)ColorRed) && initialDist < 10){
-       		attack();
-        }
-    }
-	
-	// get rid of objects inside byte at the end
-	if (SensorValue[T] == 1){
-		suck_spit(0);
-		while (SensorValue[T] == 0){}
+	while(running){
+		
+		while(!getButtonPressed(ButtonAny)){
+			if(getButtonPressed(ButtonUp)) {
+				while(!getButtonPressed(ButtonEnter)){}
+				runTime = getFood((int)colorRed);
+			} else if(getButtonPressed(ButtonRight)) {
+				while(!getButtonPressed(ButtonEnter)){}
+				runTime = getFood((int)colorBlue);
+			} else if(getButtonPressed(ButtonLeft)) {
+				while(!getButtonPressed(ButtonEnter)){}
+				runTime = getFood((int)colorBlack);
+			} else if(getButtonPressed(ButtonEnter)) {
+				while(!getButtonPressed(ButtonEnter)){}
+				running = false;
+			}
+		}
+		
+		if(runTime < 5000){
+			punishHim();
+		}
+		
+		// SOUND ATTACK THING
+		
 	}
-
+	
+	move((int)colorBlue, false);
 }
