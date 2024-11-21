@@ -1,9 +1,3 @@
-// Motors
-const string MF = "motorA"; // Front motor
-const string MBL = "motorC"; // Back left motor
-const string MBR = "motorD"; // Back right motor
-const string MT = "motorB"; // Tray motor
-
 // Sensors
 const string T = "S1"; // Touch sensor
 const string US = "S2"; // Ultrasonic sensor
@@ -52,39 +46,48 @@ void configureSensors(){
 
 }
 
+void straight(bool dir){
+	if (bool == 1){
+		motor[motorB] = motor[motorD] = motor[motorC] = spd;
+	}
+	else{
+		motor[motorB] = motor[motorD] = motor[motorC] = -spd;
+	}
+	
+}
 // Follows black line
 void followLine() {
 	
-	motor[MF] = spd; // Start legs
+	straight(1) // Start legs
 	
 	// Self correction
 	if(SensorValue[CRef] < low){ // Too far left, drive towards right
 			
 		clearTimer(T2); // Reset faulty case timer
-		motor[MBL] = spd + 10; 
-		motor[MBR] = spd;
+		motor[motorD] = spd + 10; 
+		motor[motorC] = spd;
 				
 	} else if(SensorValue[CRef] > high){ // Too far right, drive towards left
 		
-		motor[MBL] = spd; 
-		motor[MBR] = spd + 10; 
+		motor[motorD] = spd; 
+		motor[motorC] = spd + 10; 
 				
 	} else { // Following line, go straight
 		
 		clearTimer(T2); // Reset faulty case timer
-		motor[MBL] = motor[MBR] = spd;
+		motor[motorD] = motor[motorC] = spd;
 				
 	}
 	
 	if(detectObstacle()){
-		motor[MF] = motor[MBL] = motor[MBR] = spd; // Move forward until it sees line
+		straight(1); // Move forward until it sees line
 		while (SensorValue[CRef] > high) {}
 		
 		resetGyro(G); // Set current heading to 0 degrees
 		
 		// Turn right 90 degrees
-		motor[MBL] = spd; 
-		motor[MBR] = -spd;
+		motor[motorD] = spd; 
+		motor[motorC] = -spd;
 		while(abs(getGyroDegrees(G)) < 90){}
 		
 	}
@@ -106,14 +109,14 @@ void move(string color, bool home){
 
 	if(home){ // If in home base (within encased rectangle)
 
-		motor[MF] = motor[MBL] = motor[MBR] = spd; // Move forward until it sees line
+		straight(1); // Move forward until it sees line
 		while (SensorValue[CRef] > high) {}
 		
 		resetGyro(G); // Set current heading to 0 degrees
 		
 		// Turn right 90 degrees
-		motor[MBL] = spd; 
-		motor[MBR] = -spd;
+		motor[motorD] = spd; 
+		motor[motorC] = -spd;
 		while(abs(getGyroDegrees(G)) < 90){}
 		
 		while (SensorValue[CColor] != color) { // Follow black line ntil color reached
@@ -123,8 +126,8 @@ void move(string color, bool home){
 		resetGyro(G); // Set current heading to 0 degrees
 		
 		// Turn left 90 degrees
-		motor[MBL] = -spd; 
-		motor[MBR] = spd;
+		motor[motorD] = -spd; 
+		motor[motorC] = spd;
 		while(abs(getGyroDegrees(G)) < 90){}
 		
 	}
@@ -135,7 +138,7 @@ void move(string color, bool home){
 
 	}
 	
-	motor[MF] = motor[MBL] = motor[MBR] = 0; // Stop all movement
+	motor[motorB] = motor[motorD] = motor[motorC] = 0; // Stop all movement
 }
 
 
@@ -155,13 +158,13 @@ int getFood(int color){
 	resetGyro(G); // Set current heading to 0 degrees
 		
 	// Turn right 180 degrees
-	motor[MBL] = spd; 
-	motor[MBR] = -spd;
+	motor[motorD] = spd; 
+	motor[motorC] = -spd;
 	while(abs(getGyroDegrees(G)) < 90){}
 	
 	move(color, false); // Return home
 	
-	motor[MF] = motor[MBL] = motor[MBR] = spd; // Go into box
+	motor[motorB] = motor[motorD] = motor[motorC] = spd; // Go into box
 	wait1M(1000);
 	
 	Suck_Spit(0); // Outtake food
@@ -182,7 +185,7 @@ void start(){
 	while(SensorValue(S) < 50){} // Wait for clap
 	playSoundFile("bark.MP3");
 	
-	motor[MF] = motor[MBL] = motor[MBR] = 0; // End roaming mode
+	motor[motorB] = motor[motorD] = motor[motorC] = 0; // End roaming mode
 
 }
 
@@ -193,16 +196,16 @@ Kiana Functions
 // Suck and Spit
 void Suck_Spit (bool indicator){
     if (indicator == 1){
-	motor[MT] = 25;
-	while (SensorValue[T] == 0)
+	motor[motorA] = 25;
+	while (time(T1) < 5/1000.0)
 		{}
     }
     else{
-	motor[MT] = -25;
-	while (SensorValue[T] == 1)
+	motor[motorA] = -25;
+	while (time(T1) < 5/1000.0)
 		{}
     }
-    motor[MT] = 0;
+    motor[motorA] = 0;
 }
 
 // Attack when see red
@@ -210,19 +213,19 @@ void attack(){
     // counter to track number of times attack sequence happens
     int counter = 0;
 
-    motor[MF] = motor[MBL] = motor[MBR] = spd;
+    motor[motorB] = motor[motorD] = motor[motorC] = spd;
 
     // byte goes towards object 3 times, moving back 5 cm each time it hits
-    if (SensorValue[T] == 1 && counter < 3){
-        motor[MF] = motor[MBL] = motor[MBR] = -spd;
+    if (counter < 3){
+        straight(1);
         while ((nMotorEncoder)* CONV) > 5){
         }
         counter += 1;
-        motor[MF] = motor[MBL] = motor[MBR] = spd;
+        straight(1);
     }
 
     // stop moving
-    motor[MF] = motor[MBL] = motor[MBR] = 0; 
+    motor[motorB] = motor[motorD] = motor[motorC] = 0;
 }
 
 
@@ -238,34 +241,34 @@ bool detectObstacle(){
     if(sensorValue[US]<=15){
     	obsDec=true;
         int degrees = 0;
-        motor(MF)=motor(MBL)=motor(MBR)=0; // motor stop
+        motor[motorB] = motor[motorD] = motor[motorC] = 0; // motor stop
         wait1Msec(1000);
         resetGyro(G);
            
-		motor(MBR)= -spd; // motor motor A = -50, B 50 FUCKING TURN THaT SHIT AROUND
-        motor(MBL)=motor(MF)= spd;// fucking forward
+	motor[motorC]= -spd; // motor motor A = -50, B 50 FUCKING TURN THaT SHIT AROUND
+        straight(1); // fucking forward
 		while(sensorValue[US]<=20){}
         degrees=getGyroDegrees(G);
-        motor(MBL)=spd;
-		motor(MF)=spd;
+        motor[motorD]=spd;
+	motor[motorB]=spd;
            
         while(true){
-            motor(MBL)=spd;
-			motor(MF)=spd;
+            motor[motorD]=spd;
+			motor[motorB]=spd;
 			wait1Msec(1000);
 			resetGyro(G);
-			motor(MBR)= spd; // motor motor A = -50, B 50 FUCKING TURN THaT SHIT AROUND
-			motor(MBL)=motor(MF)= -spd;
+			motor[motorC]= spd; // motor motor A = -50, B 50 FUCKING TURN THaT SHIT AROUND
+			motor[motorC]=motor[motorB]= -spd;
 			while(abs(getGyroDegrees(G)<=90+degrees)){}
-			motor(MF)=motor(MBL)=motor(MBR)=0;
+			motor[motorB]=motor[motorD]=motor[motorC]=0;
 			if(sensorValue[US]>=35){
-            	break;
+            			break;
 			}
 			else
 			{
 				resetGyro(G);
-				motor(MBR)= -spd; // motor motor A = -50, B 50 FUCKING TURN THaT SHIT AROUND
-				motor(MBL)=motor(MF)= spd;
+				motor[motorC]= -spd; // motor motor A = -50, B 50 FUCKING TURN THaT SHIT AROUND
+				motor[motorD]=motor[motorB]= spd;
 				while(abs(getGyroDegrees(G)<=90+degrees)){}
 			}
 		}
@@ -279,27 +282,27 @@ void punishHim(){
 
       for(int i=0; i<4; i++){ //spinning 360 4 times
       		resetGyro(G); // Set current heading to 0
-            motor(MF)=70;
-            motor(MBR)=-70;    
-            motor(MBL)=70; 
+            motor[motorB]=70;
+            motor[motorD]=-70;    
+            motor[motorC]=70; 
             while(abs(getGyroDegrees(g) <= 360){} // Turn 360 degrees
       }
       
       for (int j=0; i<3;I++){ //moving forwards and backwards 3x
-     		motor(MF)=70; // Move forward
-            motor(MBL)=spd;
-            motor(MBR)=spd;
+     		motor[motorB]=70; // Move forward
+            motor[motorD]=spd;
+            motor[motorC]=spd;
             wait1Msec(500);
-            motor(MF)=-spd; // Move backwards
-            motor(MBL)=70;
-            motor(MBR)=-spd;
+            motor[motorB]=-spd; // Move backwards
+            motor[motorD]=70;
+            motor[motorC]=-spd;
             wait1Msec(500);
       }
       // Stop movement
-      motor(MF)=0;
-      motor(MBR)=motor(MBL)=0;
+      motor[motorB]=0;
+      motor[motorC]=motor[motorD]=0;
       
-      suck_spit(1); // spit suck function uncalled
+      Suck_Spit(1); // spit suck function uncalled
 }
 
 
@@ -318,15 +321,15 @@ task main()
 		getFood((int)colorBlue);
        	
 		// if an object that is red is close to byte, attack
-        if ((SensorValue[CColor] == (int)ColorRed) && initialDist < 10){
+        if (//input sound sensor thresholds here){
        		attack();
         }
     }
 	
 	// get rid of objects inside byte at the end
-	if (SensorValue[T] == 1){
+	if (shutdown()){
 		suck_spit(0);
-		while (SensorValue[T] == 0){}
+		while (time(T1) < 10){}
 	}
 
 }
